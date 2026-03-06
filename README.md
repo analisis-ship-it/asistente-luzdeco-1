@@ -94,3 +94,4 @@ Usa este caso:
 - botones “más corto” y “más formal” con endpoints extra
 - caché de Google Sheets
 - panel admin
+redeploy
