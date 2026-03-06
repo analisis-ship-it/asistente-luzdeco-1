@@ -94,4 +94,7 @@ Usa este caso:
 - botones “más corto” y “más formal” con endpoints extra
 - caché de Google Sheets
 - panel admin
-redeploy
+
+
+## Modo gratis / fallback local
+Si OpenAI no tiene saldo o no hay OPENAI_API_KEY, la app usa una respuesta local basada en Google Sheets.
