@@ -8,12 +8,17 @@ const REQUIRED_SHEETS = [
   "faq_productos",
   "plantillas",
   "politicas",
+];
+
+const OPTIONAL_SHEETS = [
+  "catalogo_productos_normalizado",
   "catalogo_productos",
 ];
 
 function getAuth() {
   const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+  const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\n/g, "
+");
 
   if (!clientEmail || !privateKey) {
     throw new Error("Faltan GOOGLE_SERVICE_ACCOUNT_EMAIL o GOOGLE_PRIVATE_KEY en variables de entorno.");
@@ -52,7 +57,22 @@ export async function fetchSheet(sheetName: string): Promise<Row[]> {
   });
 }
 
+async function safeFetch(sheetName: string): Promise<Row[]> {
+  try {
+    return await fetchSheet(sheetName);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error || "");
+    if (/Unable to parse range|Range .* not found|Requested entity was not found/i.test(message)) {
+      return [];
+    }
+    throw error;
+  }
+}
+
 export async function fetchKnowledgeBase() {
-  const entries = await Promise.all(REQUIRED_SHEETS.map(async (name) => [name, await fetchSheet(name)] as const));
+  const entries = await Promise.all([
+    ...REQUIRED_SHEETS.map(async (name) => [name, await fetchSheet(name)] as const),
+    ...OPTIONAL_SHEETS.map(async (name) => [name, await safeFetch(name)] as const),
+  ]);
   return Object.fromEntries(entries) as Record<string, Row[]>;
 }
